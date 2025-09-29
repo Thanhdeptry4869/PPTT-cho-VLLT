@@ -1,22 +1,29 @@
 import numpy as np
 
-def bisection(dis, thresh, g_num):
+def bisection(dis, thresh):
     
     diff = thresh + 1
     N = 0
-    export_file(f'Bisection Method for function {g_num}','\n','-'*140,'\n','-'*140,'\n','N', 'a', 'b', 'ref', 'f(ref)','\n', '-'*140, header=True)
+    #export_file(f'Bisection Method','\n','-'*140,'\n','-'*140,'\n','N', 'a', 'b', 'ref', 'f(ref)','\n', '-'*140, header=True)
     while diff > thresh:
         N += 1
         ref = (dis[0] + dis[1])/2
 
-        export_file(N, dis[0], dis[1], ref, func(ref)[g_num])
+        export_file('loop_results.dat', N, dis[0], dis[1], ref, func(ref))
 
-        if func(ref)[g_num] == 0:
+        if func(dis[0])*func(dis[1]) > 0:
+            raise ValueError("Khoảng không chứa nghiệm (cùng dấu).")
+
+
+        if np.abs(func(ref)) < thresh*10:
             print(f'The result is {ref}')
+            export_file('results.dat', N, dis[0], dis[1], ref, func(ref))
+            print(f"Nghiệm xấp xỉ = {ref:.12f}, f(ref) = {func(ref):.3e}")
+            #export_file('results.dat', '-'*140)
             break
-        elif func(dis[0])[g_num] * func(ref)[g_num] < 0:
+        elif func(dis[0]) * func(ref) < 0:
             dis[1] = ref
-        elif func(ref)[g_num] * func(dis[1])[g_num] < 0:
+        elif func(ref) * func(dis[1]) < 0:
             dis[0] = ref
         else:
             print('-'*30)
@@ -25,10 +32,13 @@ def bisection(dis, thresh, g_num):
             raise ValueError
         
         diff = np.abs(dis[0] - dis[1])
-        if np.abs(dis[0] - dis[1]) < thresh:
-            print('The result is {ans} after {N} iterations'.format(ans = (dis[0] + dis[1])/2, N = N))
-            #print('diff  = ', diff)
-    export_file('-'*140)
+        # if np.abs(dis[0] - dis[1]) < thresh and np.abs(func((dis[0] + dis[1])/2)) < thresh:
+        #     print('The result is {ans} after {N} iterations'.format(ans = (dis[0] + dis[1])/2, N = N))
+        #     #print('diff  = ', diff)
+
+
+    export_file('loop_results.dat', '-'*140)
+    #export_file('results.dat', '-'*140)
 
 def fixed_point(p, thresh, N_max):
     N = 0
@@ -93,44 +103,61 @@ def newton_rapson(p, thresh, N_max):
             print('-'*30)
             raise ValueError
 
-def func(x, method = True):
+def secant(p, thresh, N_max):
+    diff = thresh + 1
+    N = 0
+    while diff > thresh:
+        p[0] = p[1] - func(p[1]) * (p[1] - p[2]) / (func(p[1]) - func(p[2]))
+        diff = np.abs(p[0] - p[1])
+        export_file(N, p[0], func(p[0]))
+        if diff < thresh:
+            print('The result is {ans} after {N} iterations'.format(ans = p[0], N = N))
+            break
+        else:
+            p[1], p[2] = p[0], p[1]
+        N += 1
+        if N == N_max:
+            print('-'*30)
+            print(f'This distance does not converge after {N} iterations')
+            print('-'*30)
+            raise ValueError
 
-    ##########################################################
-    if method:
-        g0_bisection = x - 2**(-x)
-        g1_bisection = np.exp(x) - 2 - np.cos(np.exp(x) - 2)
-        return g0_bisection, g1_bisection
-    ##########################################################
-    else:
-        g0_fixedpoint= np.sqrt(10 - x**3)/2
-        g1_fixedpoint= x - (x**3 + 4*x**2 - 10)
-        g2_fixedpoint= np.sqrt(10/x - 4*x)
-        g3_fixedpoint= np.sqrt(10/(x + 4))
-        g4_fixedpoint= x - (x**3 + 4*x**2 - 10)/(3*x**2 + 8*x)
-        return g0_fixedpoint, g1_fixedpoint, g2_fixedpoint, g3_fixedpoint, g4_fixedpoint
 
-def export_file(*args, header=False):
-    file = open('Alte_Week/BT_4/results.dat', 'a')
+def func(z):
+    from ini_data import IniData
+    ini = IniData()
+    return ini.get_func(z)[0]
+
+def export_file(file_name, *args, header=False):
+    file = open(file_name, 'a')
     if header:
         file.write(' '.join(f"{str(x):>20}" for x in args) + '\n')
     else:
-        file.write(' |'.join(f"{x:20.15g}" if isinstance(x, (int, float)) else str(x) for x in args) + '\n')
+        file.write(' '.join(f"{x:20.15g}" if isinstance(x, (int, float)) else str(x) for x in args) + '\n')
     file.close()
 
-# # Method Bisection
-# g_num = 1
-# dis = [0.5, 1.5]
-# thresh = 1e-10
-# bisection(dis, thresh, g_num)
 
-# # Method Fixed Point
-# thresh = 1e-100
-# p = [0, 1]
-# N_max = 100
-# fixed_point(p, thresh, N_max)
+if __name__ == '__main__':
 
-# # Method Newton-Rapson
-# thresh = 1e-8
-# p = [0, 1]
-# N_max = 100 
-# newton_rapson(p, thresh, N_max)
+    # Method Bisection
+    dis = [0.0, 10.0]
+    thresh = 1e-10
+    bisection(dis, thresh)
+
+    # # Method Fixed Point
+    # thresh = 1e-100
+    # p = [0, 1]
+    # N_max = 100
+    # fixed_point(p, thresh, N_max)
+
+    # # Method Newton-Rapson
+    # thresh = 1e-8
+    # p = [0, 1]
+    # N_max = 100 
+    # newton_rapson(p, thresh, N_max)
+
+    # # Method Secant
+    # thresh = 1e-8
+    # p = [0, 1+1e-5, 1]
+    # N_max = 100 
+    # secant(p, thresh, N_max)
