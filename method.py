@@ -1,8 +1,8 @@
 import numpy as np
 
-def bisection(dis, thresh):
-    
-    diff = thresh + 1
+def bisection(dis, thresh):     
+    diff        = thresh + 1
+    threshold   = 1e-5          #Mức sai số chấp nhận
     N = 0
     #export_file(f'Bisection Method','\n','-'*140,'\n','-'*140,'\n','N', 'a', 'b', 'ref', 'f(ref)','\n', '-'*140, header=True)
     while diff > thresh:
@@ -15,7 +15,7 @@ def bisection(dis, thresh):
             raise ValueError("Khoảng không chứa nghiệm (cùng dấu).")
 
 
-        if np.abs(func(ref)) < thresh*10:
+        if np.abs(func(ref)) < threshold:
             print(f'The result is {ref}')
             export_file('results.dat', N, dis[0], dis[1], ref, func(ref))
             print(f"Nghiệm xấp xỉ = {ref:.12f}, f(ref) = {func(ref):.3e}")
@@ -89,7 +89,7 @@ def newton_rapson(p, thresh, N_max):
     diff = thresh + 1
     N = 0
     while diff > thresh:
-        p[0] = p[1] - func(p[1])[2] / func(p[1])[3]
+        p[0] = p[1] - func(p[1]) / func(p[1])
         diff = np.abs(p[0] - p[1])
         if diff < thresh:
             print('The result is {ans} after {N} iterations'.format(ans = p[0], N = N))

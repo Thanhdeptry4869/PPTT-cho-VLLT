@@ -7,7 +7,7 @@ class Calculator:
         self.ini    = idt.IniData()
         self.z0     = self.ini.get_z0()
         self.shift  = 1e-5              # Để tránh những tan(k*pi/2) vô hạn
-        self.method_name = 'bisection'  # Default method
+        self.method_name = 'newton_rapson'  # Default method
 
     def get_interval(self):
         func    = lambda z: self.ini.get_func(z)[0]  # Even function
@@ -44,23 +44,24 @@ class Calculator:
 
         return interval_N
 
-    def calculate(self, method_name = None, thresh=1e-7, N_max=100):
+    def calculate(self, method_name = None, thresh=1e-9, N_max=100):
         interval = self.get_interval()
         if method_name == None:
             method_name = self.method_name.lower()
             
         for inter in interval:
-            p = [inter[0], inter[1]]
             if method_name == 'bisection':
+                p = [inter[0], inter[1]]
                 bisection(p, thresh)
             elif method_name == 'newton_rapson':
+                p = [0, np.random.uniform(inter[0], inter[1])] # p[0] là biến chứa nghiệm update, đặt tùy ý
                 newton_rapson(p, thresh, N_max)
             elif method_name == 'secant':
                 secant(p, thresh, N_max)
             else:
                 raise ValueError('Method not recognized. Use "bisection", "newton_rapson", or "secant".')
     
-    def c
+
 cal = Calculator()
 # interval = cal.get_interval()
-cal.calculate(method_name='bisection')
+cal.calculate(method_name='newton_rapson')
