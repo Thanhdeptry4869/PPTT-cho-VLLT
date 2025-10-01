@@ -83,12 +83,15 @@ class Calculator:
         a   = self.a
         N = 1000   # Số đoạn chia, chia càng nhiều func càng rõ
         dis = np.linspace(-10*a, 10*a, N) # Khoảng chạy của x
+        count = 0
         for z in z_values:
+            count += 1
             #export_file('results_psi.dat', z, '\n')
             for x in dis:
                 psi_func(x, z)
 
-                
+        print(f'Số z được tính là {count}')
+            
 if __name__ == '__main__':
     cal = Calculator()
     # interval = cal.get_interval()

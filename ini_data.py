@@ -4,7 +4,7 @@ import numpy as np
 class IniData:
     def __init__(self):
         self.a  = 1     
-        self.v0 = 10       
+        self.v0 = 2000       
         self.m  = 1  
         self.hbar = 1
         self.e  = 1
