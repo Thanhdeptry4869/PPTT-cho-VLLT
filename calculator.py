@@ -23,20 +23,18 @@ class Calculator:
         
         #print(interval_k)
         
-        interval_N = []         # Chia khoảng interval_k thành N phần
-        start = None
+        interval_N = []
         for inter in interval_k:
             step = (inter[1] - inter[0]) / N
-            loop = True
-            
-            while loop:
-                if start is None:
-                    start = inter[0]
-
-                end   = start + step
+            start = inter[0]                # reset tại đầu mỗi khoảng
+            while start < inter[1]:
+                end = start + step
+                if end > inter[1]:
+                    end = inter[1]
                 if func(start) * func(end) < 0:
                     interval_N.append([start, end])
                 start = end
+
                 if end >= inter[1]:
                     loop = False
         
@@ -50,6 +48,7 @@ class Calculator:
             method_name = self.method_name.lower()
             
         for inter in interval:
+            print('inter loops = ', inter)
             if method_name == 'bisection':
                 p = [inter[0], inter[1]]
                 bisection(p, thresh)
@@ -64,4 +63,4 @@ class Calculator:
 
 cal = Calculator()
 # interval = cal.get_interval()
-cal.calculate(method_name='newton_rapson')
+cal.calculate(method_name='bisection')

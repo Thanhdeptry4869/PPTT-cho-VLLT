@@ -9,21 +9,21 @@ def bisection(dis, thresh):
         N += 1
         ref = (dis[0] + dis[1])/2
 
-        export_file('loop_results.dat', N, dis[0], dis[1], ref, func(ref))
+        export_file('loop_results.dat', N, dis[0], dis[1], ref, func(ref)[0])
 
-        if func(dis[0])*func(dis[1]) > 0:
+        if func(dis[0])[0]*func(dis[1])[0] > 0:
             raise ValueError("Khoảng không chứa nghiệm (cùng dấu).")
 
 
-        if np.abs(func(ref)) < threshold:
+        if np.abs(func(ref)[0]) < threshold:
             print(f'The result is {ref}')
-            export_file('results.dat', N, dis[0], dis[1], ref, func(ref))
-            print(f"Nghiệm xấp xỉ = {ref:.12f}, f(ref) = {func(ref):.3e}")
+            export_file('results.dat', N, dis[0], dis[1], ref, func(ref)[0])
+            print(f"Nghiệm xấp xỉ = {ref:.12f}, f(ref) = {func(ref)[0]:.3e}")
             #export_file('results.dat', '-'*140)
             break
-        elif func(dis[0]) * func(ref) < 0:
+        elif func(dis[0])[0] * func(ref)[0] < 0:
             dis[1] = ref
-        elif func(ref) * func(dis[1]) < 0:
+        elif func(ref)[0] * func(dis[1])[0] < 0:
             dis[0] = ref
         else:
             print('-'*30)
@@ -85,11 +85,12 @@ def fixed_point(p, thresh, N_max):
             break
     export_file('-'*140)
 
+
 def newton_rapson(p, thresh, N_max):
     diff = thresh + 1
     N = 0
     while diff > thresh:
-        p[0] = p[1] - func(p[1]) / func(p[1])
+        p[0] = p[1] - func(p[1])[0] / func(p[1])[1]
         diff = np.abs(p[0] - p[1])
         if diff < thresh:
             print('The result is {ans} after {N} iterations'.format(ans = p[0], N = N))
@@ -126,7 +127,7 @@ def secant(p, thresh, N_max):
 def func(z):
     from ini_data import IniData
     ini = IniData()
-    return ini.get_func(z)[0]
+    return ini.get_func(z)[0], ini.get_func(z)[1]
 
 def export_file(file_name, *args, header=False):
     file = open(file_name, 'a')

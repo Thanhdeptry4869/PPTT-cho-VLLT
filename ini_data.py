@@ -24,9 +24,13 @@ class IniData:
         
     def get_func(self, z):
         z0 = self.get_z0()
+        if z >= z0:
+            raise ValueError('Giá trị không hợp lệ')
         func_even = np.tan(z) - np.sqrt(z0**2 - z**2) / z
         func_odd  = np.tan(z) + z/np.sqrt(z0**2 - z**2)
-        return func_even, func_odd
+        # Đạo hàm cho NR
+        func_even_deri = 1/(np.cos(z)**2) + z0**2 / (z**2 * np.sqrt(z0**2 - z**2))
+        return func_even, func_odd, func_even_deri
     
 
 if __name__ == '__main__':
