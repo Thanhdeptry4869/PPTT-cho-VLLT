@@ -1,10 +1,12 @@
-from method import bisection, newton_rapson_hybrid, secant
+from method import bisection, newton_rapson_hybrid, secant, export_file\
+, psi_func
 import numpy as np
 import ini_data as idt
 
 class Calculator:
     def __init__(self):
         self.ini    = idt.IniData()
+        self.a      = self.ini.a
         self.z0     = self.ini.get_z0()
         self.shift  = 1e-5              # Để tránh những tan(k*pi/2) vô hạn
         self.method_name = 'newton_rapson'  # Default method
@@ -42,11 +44,19 @@ class Calculator:
 
         return interval_N
 
-    def calculate(self, method_name = None, thresh=1e-9, N_max=100):
+    def calculate(self, method_name = None, thresh=1e-9, N_max=2000):
         interval = self.get_interval()
         if method_name == None:
             method_name = self.method_name.lower()
-            
+        
+        # Làm mới file
+        with open("results.dat", "w") as f:
+            pass  # không ghi gì vào
+        with open("results_psi.dat", "w") as f:
+            pass  # không ghi gì vào
+        with open("loop_results.dat", "w") as f:
+            pass  # không ghi gì vào
+
         for inter in interval:
             print('inter loops = ', inter)
             if method_name == 'bisection':
@@ -60,8 +70,26 @@ class Calculator:
                 secant(p, thresh, N_max)
             else:
                 raise ValueError('Method not recognized. Use "bisection", "newton_rapson", or "secant".')
-    
 
-cal = Calculator()
-# interval = cal.get_interval()
-cal.calculate(method_name='secant')
+        z_values = []
+
+        with open('results.dat', 'r') as f:
+            for line in f:
+                parts = line.split()
+                print(parts)
+                if len(parts) >= 2:
+                    z_values.append(float(parts[1]))
+        
+        a   = self.a
+        N = 1000   # Số đoạn chia, chia càng nhiều func càng rõ
+        dis = np.linspace(-10*a, 10*a, N) # Khoảng chạy của x
+        for z in z_values:
+            #export_file('results_psi.dat', z, '\n')
+            for x in dis:
+                psi_func(x, z)
+
+                
+if __name__ == '__main__':
+    cal = Calculator()
+    # interval = cal.get_interval()
+    cal.calculate(method_name='secant')

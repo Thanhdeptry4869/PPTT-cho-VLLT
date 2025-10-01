@@ -161,10 +161,57 @@ def secant(p, thresh, N_max):
             raise ValueError
 
 
+from ini_data import IniData
+ini = IniData()
+
 def func(z):
-    from ini_data import IniData
-    ini = IniData()
+    # from ini_data import IniData
+    # ini = IniData()
     return ini.get_func(z)[0], ini.get_func(z)[1]
+
+def kappa(z):
+    # from ini_data import IniData
+    # ini = IniData()
+    return ini.get_kappa(z)
+
+##### Now, we need to normalize some coefficients in Psi ##########
+
+def norm_func(z):
+    from scipy.integrate import quad
+
+    # from ini_data import IniData
+    # ini = IniData()
+    a   = ini.a
+    psi_iw  = lambda x: ini.psi_func(x, z)[0]**2
+    psi_ow  = lambda x: ini.psi_func(x, z)[1]**2
+
+    iw, _ = quad(psi_iw, -a, a)        # Kết quả tích phân bên trong giếng
+    ow, _ = quad(psi_ow, a, np.inf)    # Kết quả tích phân bên ngoài giếng
+
+    # |F|^2 = const * |D|^2
+    const = np.cos(z)**2 / np.exp(-2 * kappa(z) * a)
+    
+    # Thế vào pt chuẩn hóa
+    D = np.sqrt(1/(iw + 2*const*ow))
+    F = np.sqrt(D*D*const)
+    return D, F
+
+def psi_func(x, z):
+    # from ini_data import IniData
+    # ini = IniData()
+    a    = ini.a
+    l    = z/a
+
+    D, F = norm_func(z)
+
+    if np.abs(x) > a:
+        psi = F*np.exp(- kappa(z) * x)
+        export_file('results_psi.dat', x, psi)
+        #return F*np.exp(- kappa(z) * x)
+    else: 
+        psi = D*np.cos(l*x)
+        export_file('results_psi.dat', x, psi)
+        #return D*np.cos(l*x)
 
 def export_file(file_name, *args, header=False):
     file = open(file_name, 'a')
@@ -174,6 +221,7 @@ def export_file(file_name, *args, header=False):
         file.write(' '.join(f"{x:20.15g}" if isinstance(x, (int, float)) else str(x) for x in args) + '\n')
     file.close()
 
+    
 
 if __name__ == '__main__':
 
