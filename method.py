@@ -17,7 +17,7 @@ def bisection(dis, thresh):
 
         if np.abs(func(ref)[0]) < threshold:
             print(f'The result is {ref}')
-            export_file('results.dat', N, dis[0], dis[1], ref, func(ref)[0])
+            export_file('results.dat', N, ref, func(ref)[0])
             print(f"Nghiệm xấp xỉ = {ref:.12f}, f(ref) = {func(ref)[0]:.3e}")
             #export_file('results.dat', '-'*140)
             break
