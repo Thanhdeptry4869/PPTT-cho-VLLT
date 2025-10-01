@@ -86,12 +86,14 @@ def fixed_point(p, thresh, N_max):
     export_file('-'*140)
 
 
-def newton_rapson(p, thresh, N_max):
+def newton_rapson(inter, thresh, N_max):
     diff = thresh + 1
     N = 0
+    p = [0, (inter[0] + inter[1])/2]
     while diff > thresh:
         p[0] = p[1] - func(p[1])[0] / func(p[1])[1]
         diff = np.abs(p[0] - p[1])
+        export_file('loop_results.dat', N, p[0], func(p[0])[0])
         if diff < thresh:
             print('The result is {ans} after {N} iterations'.format(ans = p[0], N = N))
             break
@@ -103,6 +105,40 @@ def newton_rapson(p, thresh, N_max):
             print(f'This distance does not converge after {N} iterations')
             print('-'*30)
             raise ValueError
+        
+def newton_rapson_hybrid(inter, thresh, N_max = None):
+    diff = thresh + 1
+    N    = 0
+    p = [0, (inter[0] + inter[1])/2]
+    while diff > thresh:
+        p[0] = p[1] - func(p[1])[0] / func(p[1])[1]
+        diff = np.abs(p[0] - p[1])
+        export_file('loop_results.dat', N, p[0], func(p[0])[0], diff)
+        if diff < thresh or np.abs(inter[0] - inter[1]) < thresh:
+            export_file('results.dat', N, p[0], func(p[0])[0], diff)
+            print('The result is {ans} after {N} iterations'.format(ans = p[0], N = N))
+            break
+        elif p[0] < inter[0] or p[0] > inter[1]:
+            p[1] = (inter[0] + inter[1]) /2
+        else:
+            p[1] = p[0]
+
+        if func(inter[0])[0] * func(p[1])[0] < 0:
+            inter[1] = p[1]
+        elif func(inter[1])[0] * func(p[1])[0] < 0:
+            inter[0] = p[1] 
+        else:
+            raise ValueError('Newton_Bisec có vấn đề!!')
+        
+
+        N += 1
+        if N == N_max:
+            print('-'*30)
+            print(f'This distance does not converge after {N} iterations')
+            print('-'*30)
+            #raise ValueError
+
+
 
 def secant(p, thresh, N_max):
     diff = thresh + 1

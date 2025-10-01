@@ -1,4 +1,4 @@
-from method import bisection, newton_rapson, secant
+from method import bisection, newton_rapson_hybrid, secant
 import numpy as np
 import ini_data as idt
 
@@ -53,8 +53,8 @@ class Calculator:
                 p = [inter[0], inter[1]]
                 bisection(p, thresh)
             elif method_name == 'newton_rapson':
-                p = [0, np.random.uniform(inter[0], inter[1])] # p[0] là biến chứa nghiệm update, đặt tùy ý
-                newton_rapson(p, thresh, N_max)
+                #p = [0, (inter[0] + inter[1])/ 2] # p[0] là biến chứa nghiệm update, đặt tùy ý
+                newton_rapson_hybrid(inter, thresh, N_max)
             elif method_name == 'secant':
                 secant(p, thresh, N_max)
             else:
@@ -63,4 +63,4 @@ class Calculator:
 
 cal = Calculator()
 # interval = cal.get_interval()
-cal.calculate(method_name='bisection')
+cal.calculate(method_name='newton_rapson')
