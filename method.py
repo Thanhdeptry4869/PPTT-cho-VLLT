@@ -144,10 +144,11 @@ def secant(p, thresh, N_max):
     diff = thresh + 1
     N = 0
     while diff > thresh:
-        p[0] = p[1] - func(p[1]) * (p[1] - p[2]) / (func(p[1]) - func(p[2]))
+        p[0] = p[1] - func(p[1])[0] * (p[1] - p[2]) / (func(p[1])[0] - func(p[2])[0])
         diff = np.abs(p[0] - p[1])
-        export_file(N, p[0], func(p[0]))
+        export_file('loop_results.dat', N, p[0], func(p[0])[0], diff)
         if diff < thresh:
+            export_file('results.dat', N, p[0], func(p[0])[0], diff)
             print('The result is {ans} after {N} iterations'.format(ans = p[0], N = N))
             break
         else:

@@ -56,6 +56,7 @@ class Calculator:
                 #p = [0, (inter[0] + inter[1])/ 2] # p[0] là biến chứa nghiệm update, đặt tùy ý
                 newton_rapson_hybrid(inter, thresh, N_max)
             elif method_name == 'secant':
+                p = [0, inter[0], inter[1]]
                 secant(p, thresh, N_max)
             else:
                 raise ValueError('Method not recognized. Use "bisection", "newton_rapson", or "secant".')
@@ -63,4 +64,4 @@ class Calculator:
 
 cal = Calculator()
 # interval = cal.get_interval()
-cal.calculate(method_name='newton_rapson')
+cal.calculate(method_name='secant')
