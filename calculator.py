@@ -81,7 +81,7 @@ class Calculator:
                     z_values.append(float(parts[1]))
         
         a   = self.a
-        N = 1000   # Số đoạn chia, chia càng nhiều func càng rõ
+        N = 10_000   # Số đoạn chia, chia càng nhiều func càng rõ
         dis = np.linspace(-30*a, 30*a, N) # Khoảng chạy của x
         count = 0
         for z in z_values:
