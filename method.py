@@ -1,4 +1,6 @@
 import numpy as np
+from ini_data import IniData
+ini = IniData()
 
 def bisection(dis, thresh):     
     diff        = thresh + 1
@@ -17,7 +19,7 @@ def bisection(dis, thresh):
 
         if np.abs(func(ref)[0]) < threshold:
             print(f'The result is {ref}')
-            export_file('results.dat', N, dis[0], dis[1], ref, func(ref)[0])
+            export_file('results.dat', N, ref, func(ref)[0])
             print(f"Nghiệm xấp xỉ = {ref:.12f}, f(ref) = {func(ref)[0]:.3e}")
             #export_file('results.dat', '-'*140)
             break
@@ -141,10 +143,13 @@ def newton_rapson_hybrid(inter, thresh, N_max = None):
 
 
 def secant(p, thresh, N_max):
+    z0 = ini.get_z0()
     diff = thresh + 1
     N = 0
     while diff > thresh:
         p[0] = p[1] - func(p[1])[0] * (p[1] - p[2]) / (func(p[1])[0] - func(p[2])[0])
+        if p[0] > z0:
+            raise ValueError('Giá trị p[0] trả về không hợp lệ')
         diff = np.abs(p[0] - p[1])
         export_file('loop_results.dat', N, p[0], func(p[0])[0], diff)
         if diff < thresh:
@@ -161,8 +166,7 @@ def secant(p, thresh, N_max):
             raise ValueError
 
 
-from ini_data import IniData
-ini = IniData()
+
 
 def func(z):
     # from ini_data import IniData
@@ -196,20 +200,20 @@ def norm_func(z):
     F = np.sqrt(D*D*const)
     return D, F
 
-def psi_func(x, z):
+def psi_func_calc(x, z):
     # from ini_data import IniData
     # ini = IniData()
     a    = ini.a
     l    = z/a
 
     D, F = norm_func(z)
-
+    
     if np.abs(x) > a:
-        psi = F*np.exp(- kappa(z) * x)
+        psi = F*ini.psi_func(x, z)[1]
         export_file('results_psi.dat', x, psi)
         #return F*np.exp(- kappa(z) * x)
     else: 
-        psi = D*np.cos(l*x)
+        psi = D*ini.psi_func(x, z)[0]
         export_file('results_psi.dat', x, psi)
         #return D*np.cos(l*x)
 

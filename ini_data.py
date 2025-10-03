@@ -4,7 +4,7 @@ import numpy as np
 class IniData:
     def __init__(self):
         self.a  = 1     
-        self.v0 = 2000       
+        self.v0 = 100 
         self.m  = 1  
         self.hbar = 1
         self.e  = 1
@@ -18,14 +18,23 @@ class IniData:
         e    = self.e
 
         if self.unit:
-            return a/hbar * np.sqrt(2*m*v0)
+            return (a/hbar) * np.sqrt(2*m*v0)
         else:
-            return a/hbar * np.sqrt(2*m*v0*e) 
+            return (a/hbar) * np.sqrt(2*m*v0*e) 
     
     def get_kappa(self, z):
         z0  = self.get_z0()
         a   = self.a
         return np.sqrt(z0**2 - z**2)/a
+
+    def get_energy(self, z):
+        z0  = self.get_z0()
+        v0  = self.v0
+        hbar = self.hbar
+        m   = self.m
+        a   = self.a 
+
+        return (hbar*hbar*z*z)/(2*m*a*a) - v0
 
     def get_func(self, z):
         z0 = self.get_z0()
@@ -41,10 +50,14 @@ class IniData:
     def psi_func(self, x , z):
         k = self.get_kappa(z)
         a = self.a
+        ene = self.get_energy(z)
+        if  ene < 0:
+            psi_iw  = np.cos(z*x/a) # wavefunc inwell
+            psi_ow  = np.exp(- k * np.abs(x)) # wavefunc outwell
+            return psi_iw, psi_ow
+        #else:
 
-        psi_iw  = np.cos(z*x/a) # wavefunc inwell
-        psi_ow  = np.exp(- k * np.abs(x)) # wavefunc outwell
-        return psi_iw, psi_ow
+            
 
 if __name__ == '__main__':
     ini = IniData()

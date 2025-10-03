@@ -1,5 +1,5 @@
 from method import bisection, newton_rapson_hybrid, secant, export_file\
-, psi_func
+, psi_func_calc
 import numpy as np
 import ini_data as idt
 
@@ -81,14 +81,14 @@ class Calculator:
                     z_values.append(float(parts[1]))
         
         a   = self.a
-        N = 1000   # Số đoạn chia, chia càng nhiều func càng rõ
-        dis = np.linspace(-10*a, 10*a, N) # Khoảng chạy của x
+        N = 10_000   # Số đoạn chia, chia càng nhiều func càng rõ
+        dis = np.linspace(-30*a, 30*a, N) # Khoảng chạy của x
         count = 0
         for z in z_values:
             count += 1
             #export_file('results_psi.dat', z, '\n')
             for x in dis:
-                psi_func(x, z)
+                psi_func_calc(x, z)
 
         print(f'Số z được tính là {count}')
             
