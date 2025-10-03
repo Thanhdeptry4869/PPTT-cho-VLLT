@@ -4,7 +4,7 @@ import numpy as np
 class IniData:
     def __init__(self):
         self.a  = 1     
-        self.v0 = 2000       
+        self.v0 = 20 
         self.m  = 1  
         self.hbar = 1
         self.e  = 1
@@ -27,6 +27,15 @@ class IniData:
         a   = self.a
         return np.sqrt(z0**2 - z**2)/a
 
+    def get_energy(self, z):
+        z0  = self.get_z0()
+        v0  = self.v0
+        hbar = self.hbar
+        m   = self.m
+        a   = self.a 
+
+        return (hbar*hbar*z*z)/(2*m*a) - v0
+
     def get_func(self, z):
         z0 = self.get_z0()
         print('Giá trị của z trong get_func =', z)
@@ -41,10 +50,13 @@ class IniData:
     def psi_func(self, x , z):
         k = self.get_kappa(z)
         a = self.a
-
-        psi_iw  = np.cos(z*x/a) # wavefunc inwell
-        psi_ow  = np.exp(- k * np.abs(x)) # wavefunc outwell
-        return psi_iw, psi_ow
+        ene = self.get_energy(z)
+        if  ene < 0:
+            psi_iw  = np.cos(z*x/a) # wavefunc inwell
+            psi_ow  = np.exp(- k * np.abs(x)) # wavefunc outwell
+            return psi_iw, psi_ow
+        
+            
 
 if __name__ == '__main__':
     ini = IniData()

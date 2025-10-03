@@ -196,7 +196,7 @@ def norm_func(z):
     F = np.sqrt(D*D*const)
     return D, F
 
-def psi_func(x, z):
+def psi_func_calc(x, z):
     # from ini_data import IniData
     # ini = IniData()
     a    = ini.a
@@ -205,7 +205,7 @@ def psi_func(x, z):
     D, F = norm_func(z)
 
     if np.abs(x) > a:
-        psi = F*np.exp(- kappa(z) * x)
+        psi = F*np.exp(- kappa(z) *np.abs(x))
         export_file('results_psi.dat', x, psi)
         #return F*np.exp(- kappa(z) * x)
     else: 
