@@ -10,7 +10,8 @@ HBAR = 658.5                # meV fs
 DELTA_T_LASER = 25.0        # fs (độ rộng xung laser)
 CHI_0 = 2.0                 # Cường độ xung (chọn 1.0 từ 0.1-2)
 DELTA_0 = 30.0              # meV (năng lượng trội)
-T_2 = 200.0                 # fs (thời gian khử pha)
+T_2_0 = 210.0               # fs 
+GAMMA = 6.5e-20             # cm^3 fs^-1
 
 # Tham số mô phỏng
 T_0 = -3 * DELTA_T_LASER    # Thời gian bắt đầu 
@@ -106,10 +107,14 @@ def F(t, Y, g_mat):
     # F[0,n] = complex(a, a) -> d(f_e)/dt = a và d(f_h)/dt = a
     dYdt[0, :] = a_vec + 1j * a_vec
     
+    N_t_current = np.sum(Y_1 * dos_weights)
+    inv_T2 = (1.0 / T_2_0) + (GAMMA * N_t_current)
+    T2_current = 1.0 / inv_T2
+    
     # 3. Tính dY[1, n]/dt (đạo hàm của p_n) 
     term1 = (-1j / HBAR) * (epsilon_n_array - DELTA_0 - E_vec) * Y_2
     term2 = 1j * (1.0 - Y_1.real - Y_1.imag) * Omega_R_vec
-    term3 = -Y_2 / T_2
+    term3 = -Y_2 / T2_current
     
     dYdt[1, :] = term1 + term2 + term3
     
@@ -216,7 +221,7 @@ plt.subplot(3, 1, 3)
 plt.plot(epsilon_n_array, alpha_omega)
 plt.title("Phổ hấp thụ")
 plt.xlabel("Năng lượng $\epsilon$ (meV)")
-plt.ylabel("Hệ số hấp thụ $\\alpha(\epsilon)$")
+plt.ylabel("Hệ số hấp thụ $\\alpha(\\epsilon)$")
 plt.grid(True)
 
 # # Đồ thị 3: Hàm phân bố cuối cùng f_e(epsilon)
@@ -228,18 +233,18 @@ plt.grid(True)
 # plt.grid(True)
 # plt.tight_layout()
 
-with open("./sbe_simulation_results.txt", "w") as f:
+with open("./sbe_simulation_results(2).txt", "w") as f:
     for i in range(time_points.shape[0]):
         f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
 
-with open("./sbe_f_e_n_results.txt", "w") as f:
+with open("./sbe_f_e_n_results(2).txt", "w") as f:
     for i in range(time_points.shape[0]):
         # f.write(f"{time_points[i]}\t")
         for n in range(N):
             f.write(f"{results_f_e_n[i][n]:.6f}\t")
         f.write("\n")
 
-with open("./sbe_p_n_results.txt", "w") as f:
+with open("./sbe_p_n_results(2).txt", "w") as f:
     for i in range(time_points.shape[0]):
         # f.write(f"{time_points[i]}\t")
         for n in range(N):
@@ -248,5 +253,5 @@ with open("./sbe_p_n_results.txt", "w") as f:
 
 # Lưu đồ thị
 plt.tight_layout()
-plt.savefig("./sbe_simulation_results.png")
-print("Đã lưu kết quả đồ thị vào file 'sbe_simulation_results.png'")
+plt.savefig("./sbe_simulation_results(2).png")
+print("Đã lưu kết quả đồ thị vào file 'sbe_simulation_results(2).png'")
