@@ -8,9 +8,9 @@ DELTA_EPSILON = EPSILON_MAX / N
 E_R = 4.2                   # meV
 HBAR = 658.5                # meV fs
 DELTA_T_LASER = 25.0        # fs (độ rộng xung laser)
-CHI_0 = 2.0                 # Cường độ xung (chọn 1.0 từ 0.1-2)
+CHI_0 = 0.1                 # Cường độ xung (chọn 1.0 từ 0.1-2)
 DELTA_0 = 30.0              # meV (năng lượng trội)
-T_2 = 200.0                 # fs (thời gian khử pha)
+T_2 = 210.0                 # fs (thời gian khử pha)
 
 # Tham số mô phỏng
 T_0 = -3 * DELTA_T_LASER    # Thời gian bắt đầu 
@@ -157,10 +157,10 @@ for i, t in enumerate(time_points):
     
     # N(t) = 2 * sum(f_e,k) -> C * sum(sqrt(n) * f_e,n)
     # (Bỏ qua hằng số C0)
-    N_t = np.sum(f_e_n * dos_weights)
+    N_t = np.sum(f_e_n)
     
     # P(t) = sum(p_k) -> C' * sum(sqrt(n) * p_n)
-    P_t_complex = np.sum(p_n * dos_weights)
+    P_t_complex = np.sum(p_n)
     results_f_e_n.append(f_e_n)
     results_f_h_n.append(f_h_n)
     results_p_n.append(p_n)
@@ -173,25 +173,31 @@ for i, t in enumerate(time_points):
 print("Mô phỏng hoàn tất.")
 
 # --- 8. Biến đổi Fourier cho P(t) và E(t) ---
-def calculate_ft_riemann(time_array, signal_array, energy_axis, hbar_val):
-    dt = time_array[1] - time_array[0]
-    signal_omega = np.zeros_like(energy_axis, dtype=complex)
-    
-    # Lặp qua TỪNG điểm năng lượng 'E' mà chúng ta muốn tính
-    for i, energy in enumerate(energy_axis):
-        # Tính exponent: exp(i * E * t / hbar)
-        exponent = np.exp(1j * energy * time_array / hbar_val)
-        
-        # Tính tổng Riemann: sum( P(t) * exponent ) * dt
-        riemann_sum = np.sum(signal_array * exponent) * dt
-        signal_omega[i] = riemann_sum
-        
-    return signal_omega
+def calculate_ft_energy(time_array, signal_array, energy_array, hbar_val):
+    """
+    Vectorized FT over an energy grid (energy_array in same units as HBAR, e.g. meV).
+    Uses convention: FT(E) = ∫ dt S(t) * exp(-i * E * t / ħ)
+    Returns complex array of length len(energy_array).
+    """
+    t = time_array
+    # shape (T,)
+    dt = t[1] - t[0]
+    # build exponent matrix: shape (len(E), len(t))
+    # avoid huge memory by chunking if needed; for moderate sizes it's OK
+    phase = np.exp(-1j * np.outer(energy_array, t) / hbar_val)  # shape (E, T)
+    # trapezoidal integration along time axis:
+    ft = np.trapz(signal_array[None, :] * phase, t, axis=1)
+    return ft
 
-results_E_t = np.exp(-(time_points**2) / (DELTA_T_LASER**2))
-P_omega = calculate_ft_riemann(time_points, results_P_t_complex, epsilon_n_array, HBAR)
-E_omega = calculate_ft_riemann(time_points, results_E_t, epsilon_n_array, HBAR)
-alpha_omega = (P_omega / E_omega).imag
+# --- Usage ---
+energy_array = np.linspace(0.0, 500.0, 10000)  # meV
+P_omega = calculate_ft_energy(time_points, np.array(results_P_t_complex), energy_array, HBAR)
+E_t_array = np.exp(-(time_points**2) / (DELTA_T_LASER**2))
+E_omega = calculate_ft_energy(time_points, E_t_array, energy_array, HBAR)
+
+# guard against tiny denominators
+eps = 1e-16
+alpha_omega = np.imag(P_omega / (E_omega + eps))
 
 # --- 8. Vẽ đồ thị kết quả  ---
 plt.figure(figsize=(12, 10))
@@ -213,7 +219,7 @@ plt.ylabel("$|P(t)|$")
 plt.grid(True)
 
 plt.subplot(3, 1, 3)
-plt.plot(epsilon_n_array, alpha_omega)
+plt.plot(energy_array, alpha_omega)
 plt.title("Phổ hấp thụ")
 plt.xlabel("Năng lượng $\epsilon$ (meV)")
 plt.ylabel("Hệ số hấp thụ $\\alpha(\epsilon)$")
@@ -228,25 +234,31 @@ plt.grid(True)
 # plt.grid(True)
 # plt.tight_layout()
 
-with open("./sbe_simulation_results.txt", "w") as f:
+with open("sbe_simulation_results3.txt", "w") as f:
     for i in range(time_points.shape[0]):
         f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
 
-with open("./sbe_f_e_n_results.txt", "w") as f:
+with open("sbe_f_e_n_results.txt", "w") as f:
     for i in range(time_points.shape[0]):
         # f.write(f"{time_points[i]}\t")
         for n in range(N):
             f.write(f"{results_f_e_n[i][n]:.6f}\t")
         f.write("\n")
 
-with open("./sbe_p_n_results.txt", "w") as f:
+with open("sbe_p_n_results.txt", "w") as f:
     for i in range(time_points.shape[0]):
         # f.write(f"{time_points[i]}\t")
         for n in range(N):
             f.write(f"{results_p_n[i][n]:.6f}\t")
         f.write("\n")
 
+# with open("sbe_absorption_results.txt", "w") as f:
+#     # alpha_omega is defined on the energy axis (epsilon_n_array), length N.
+#     # Write energy (meV) and absorption alpha for each energy sample.
+#     for i in range(len(omega_array)):
+#         f.write(f"{omega_array[i]:.6f}\t{alpha_omega[i]:.6f}\n")
+
 # Lưu đồ thị
 plt.tight_layout()
-plt.savefig("./sbe_simulation_results.png")
+plt.savefig("sbe_simulation_results.png")
 print("Đã lưu kết quả đồ thị vào file 'sbe_simulation_results.png'")
