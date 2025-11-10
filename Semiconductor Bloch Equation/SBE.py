@@ -11,29 +11,30 @@ DELTA_T_LASER = 25.0        # fs (độ rộng xung laser)
 CHI_0 = 0.1                 # Cường độ xung (chọn 1.0 từ 0.1-2)
 DELTA_0 = 30.0              # meV (năng lượng trội)
 T_2 = 210.0                 # fs (thời gian khử pha)
+omega0 = (DELTA_0 + E_R) / HBAR  # tần số quang học trung tâm
 
 # Tham số mô phỏng
 T_0 = -3 * DELTA_T_LASER    # Thời gian bắt đầu 
-T_MAX = 500.0               # fs
+T_MAX = 1500.0               # fs
 DT = 2.0                    # fs (bước thời gian)
+
+# Hằng số chuyển đổi (Lấy từ pht1.py để sửa lỗi T2)
+a0_A = 125.0
+a0_cm = a0_A * 1e-8
+numerator = DELTA_EPSILON * np.sqrt(DELTA_EPSILON)
+denominator = 2 * (np.pi ** 2) * (a0_cm ** 3) * E_R * np.sqrt(E_R)
+C_density = numerator / denominator
 
 # --- 2. Hàm trợ giúp g(n, n1) ---
 def g_func(n_idx, n1_idx, delta_eps):
-    """
-    Tính hàm g(n, n1).
-    Sử dụng chỉ số mảng (0-based) và chuyển sang 1-based (n, n1) bên trong.
-    """
     n = n_idx + 1
     n1 = n1_idx + 1
-
-    if n == n1:
-        # Xử lý trường hợp kỳ dị n=n1, ln|.../(n-n1)| -> vô cực.
-        # Trong vật lý, tương tác của một hạt với chính nó
-        # thường được loại bỏ hoặc xử lý riêng. Ở đây ta đặt bằng 0.
-        return 0.0
-
+    sn, sn1 = np.sqrt(n), np.sqrt(n1)
+    if abs(sn - sn1) < 1e-12:
+        # Xử lý kỳ dị (Đã giống pht1)
+        return 2.0 / np.sqrt(n * delta_eps)
     term1 = 1.0 / np.sqrt(n * delta_eps)
-    term2 = np.log(np.abs((np.sqrt(n) + np.sqrt(n1)) / (np.sqrt(n) - np.sqrt(n1))))
+    term2 = np.log(np.abs((sn + sn1) / (sn - sn1)))
     return term1 * term2
 
 # --- 3. Tiền xử lý ma trận g ---
@@ -160,7 +161,7 @@ for i, t in enumerate(time_points):
     N_t = np.sum(f_e_n)
     
     # P(t) = sum(p_k) -> C' * sum(sqrt(n) * p_n)
-    P_t_complex = np.sum(p_n)
+    P_t_complex = np.sum(p_n * dos_weights)
     results_f_e_n.append(f_e_n)
     results_f_h_n.append(f_h_n)
     results_p_n.append(p_n)
@@ -181,23 +182,32 @@ def calculate_ft_energy(time_array, signal_array, energy_array, hbar_val):
     """
     t = time_array
     # shape (T,)
-    dt = t[1] - t[0]
+    dt = DT
     # build exponent matrix: shape (len(E), len(t))
     # avoid huge memory by chunking if needed; for moderate sizes it's OK
-    phase = np.exp(-1j * np.outer(energy_array, t) / hbar_val)  # shape (E, T)
+    phase = np.exp(1j * np.outer(energy_array, t) / hbar_val)  # shape (E, T)
     # trapezoidal integration along time axis:
-    ft = np.trapz(signal_array[None, :] * phase, t, axis=1)
+    ft = np.sum(signal_array * phase, axis=1) * dt
     return ft
 
 # --- Usage ---
-energy_array = np.linspace(0.0, 500.0, 10000)  # meV
+# Define physical energy range around bandgap
+from numpy.fft import fftfreq
+n_freq = len(time_points)
+freqs = fftfreq(n_freq, d=DT)
+energy_array = HBAR * 2 * np.pi * freqs  # meV
+
+# Calculate Fourier transforms
 P_omega = calculate_ft_energy(time_points, np.array(results_P_t_complex), energy_array, HBAR)
 E_t_array = np.exp(-(time_points**2) / (DELTA_T_LASER**2))
 E_omega = calculate_ft_energy(time_points, E_t_array, energy_array, HBAR)
 
-# guard against tiny denominators
+# Calculate absorption spectrum
 eps = 1e-16
 alpha_omega = np.imag(P_omega / (E_omega + eps))
+
+# Normalize absorption spectrum
+alpha_omega = alpha_omega / np.max(np.abs(alpha_omega))  # Normalize to [-1,1]
 
 # --- 8. Vẽ đồ thị kết quả  ---
 plt.figure(figsize=(12, 10))
@@ -223,6 +233,7 @@ plt.plot(energy_array, alpha_omega)
 plt.title("Phổ hấp thụ")
 plt.xlabel("Năng lượng $\epsilon$ (meV)")
 plt.ylabel("Hệ số hấp thụ $\\alpha(\epsilon)$")
+# plt.xlim(omega0 - 100, omega0 + 100)
 plt.grid(True)
 
 # # Đồ thị 3: Hàm phân bố cuối cùng f_e(epsilon)
@@ -252,11 +263,11 @@ with open("sbe_p_n_results.txt", "w") as f:
             f.write(f"{results_p_n[i][n]:.6f}\t")
         f.write("\n")
 
-# with open("sbe_absorption_results.txt", "w") as f:
-#     # alpha_omega is defined on the energy axis (epsilon_n_array), length N.
-#     # Write energy (meV) and absorption alpha for each energy sample.
-#     for i in range(len(omega_array)):
-#         f.write(f"{omega_array[i]:.6f}\t{alpha_omega[i]:.6f}\n")
+# Save absorption spectrum results
+with open("sbe_absorption_results.txt", "w") as f:
+    f.write("# Energy (meV)\tAbsorption coefficient\n")
+    for i in range(len(energy_array)):
+        f.write(f"{energy_array[i]:.6f}\t{alpha_omega[i]:.6f}\n")
 
 # Lưu đồ thị
 plt.tight_layout()
