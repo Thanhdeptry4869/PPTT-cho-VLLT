@@ -8,7 +8,7 @@ DELTA_EPSILON = EPSILON_MAX / N
 E_R = 4.2                   # meV
 HBAR = 658.5                # meV fs
 DELTA_T_LASER = 25.0        # fs (độ rộng xung laser)
-CHI_0 = 0.1                 # Cường độ xung
+CHI_0 = 0.01                 # Cường độ xung
 DELTA_0 = 30.0              # meV (năng lượng trội)
 T_2 = 210.0                 # fs (thời gian khử pha)
 
@@ -62,6 +62,7 @@ def Omega_R_vector(t, Y, g_mat, delta_eps, e_r, hbar, delta_t, chi_0):
     
     # --- Tương tác Coulomb ---
     sum_term_vector = (np.sqrt(e_r) / np.pi) * delta_eps * (g_mat @ p_n_vector)
+    # sum_term_vector = 0
     
     return (1.0 / hbar) * (laser_term_scalar + sum_term_vector)
 
@@ -146,7 +147,7 @@ def calculate_ft_energy(time_array, signal_array, energy_axis, hbar_val):
 # --- Usage ---
 # *** LỖI TÍNH TOÁN 2 ĐÃ SỬA: Dùng trục tuyến tính, không dùng fftfreq ***
 print("Đang tính toán Phổ Hấp thụ...")
-energy_axis_plot = np.linspace(-300, 300, 1000) # Trục năng lượng (meV) tuyến tính
+energy_axis_plot = np.linspace(-50, 100, 500) # Trục năng lượng (meV) tuyến tính
 
 P_omega = calculate_ft_energy(time_points, np.array(results_P_t_complex), energy_axis_plot, HBAR)
 E_t_array = np.exp(-(time_points**2) / (DELTA_T_LASER**2))
@@ -191,28 +192,28 @@ plt.xlim(-100, 100)
 plt.legend()
 plt.grid(True)
 
-with open("sbe_simulation_results3.txt", "w") as f:
-    for i in range(len(time_points)):
-        f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
+# with open(f"sbe_simulation_results({CHI_0}).txt", "w") as f:
+#     for i in range(len(time_points)):
+#         f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
 
-with open("sbe_f_e_n_results.txt", "w") as f:
-    for i in range(len(time_points)):
-        # f.write(f"{time_points[i]}\t")
-        for n in range(N):
-            f.write(f"{results_f_e_n[i][n]:.6f}\t")
-        f.write("\n")
+# with open(f"sbe_f_e_n_results({CHI_0}).txt", "w") as f:
+#     for i in range(len(time_points)):
+#         # f.write(f"{time_points[i]}\t")
+#         for n in range(N):
+#             f.write(f"{results_f_e_n[i][n]:.6f}\t")
+#         f.write("\n")
 
-with open("sbe_p_n_results.txt", "w") as f:
-    for i in range(len(time_points)):
-        # f.write(f"{time_points[i]}\t")
-        for n in range(N):
-            # p_n is complex so write real+imag form to avoid formatting errors
-            val = results_p_n[i][n]
-            f.write(f"{val.real:.6f}+{val.imag:.6f}j\t")
-        f.write("\n")
+# with open(f"sbe_p_n_results({CHI_0}).txt", "w") as f:
+#     for i in range(len(time_points)):
+#         # f.write(f"{time_points[i]}\t")
+#         for n in range(N):
+#             # p_n is complex so write real+imag form to avoid formatting errors
+#             val = results_p_n[i][n]
+#             f.write(f"{val.real:.6f}+{val.imag:.6f}j\t")
+#         f.write("\n")
 
 # Save absorption spectrum results
-with open("sbe_absorption_results.txt", "w") as f:
+with open(f"sbe_absorption_results({CHI_0})(500).txt", "w") as f:
     for i in range(len(energy_axis_plot)):
         f.write(f"{energy_axis_plot[i]:.6f}\t{alpha_omega[i]:.6f}\n")
 
