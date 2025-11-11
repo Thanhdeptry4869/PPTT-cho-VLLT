@@ -100,6 +100,8 @@ time_points = np.arange(T_0, T_MAX + DT, DT)
 n_steps = len(time_points)
 Y_current = np.zeros((2, N), dtype=complex)
 
+results_f_e_n = []  # Lưu f_e(n) theo thời gian
+results_p_n = []    # Lưu p_n theo thời gian
 results_N_t = []
 results_P_t_complex = [] # Mảng complex P(t)
 results_P_t = []
@@ -111,13 +113,16 @@ for i, t in enumerate(time_points):
     f_e_n = Y_current[0, :].real
     p_n = Y_current[1, :]
     
-    # *** LỖI VẬT LÝ 1 ĐÃ SỬA: Thêm trọng số DOS (sqrt(n)) và spin (2.0) ***
     N_t = 2.0 * np.sum(f_e_n * dos_weights)
     P_t_complex = np.sum(p_n * dos_weights)
     
     results_N_t.append(N_t)
     results_P_t_complex.append(P_t_complex)
     results_P_t.append(np.abs(P_t_complex))
+    
+    # Lưu trạng thái phân bố và phân cực tại thời điểm này
+    results_f_e_n.append(f_e_n.copy())
+    results_p_n.append(p_n.copy())
 
     Y_current = rk4_step(t, Y_current, DT, g_matrix)
 print("Mô phỏng hoàn tất.")
@@ -182,11 +187,35 @@ plt.xlabel("Năng lượng Photon (meV)")
 plt.ylabel("Hệ số hấp thụ (Chuẩn hóa)")
 # Thêm vạch chỉ 30 meV để kiểm tra
 plt.axvline(x=30.0, color='r', linestyle='--', label='$\\Delta_0 = 30$ meV')
+plt.xlim(-100, 100)
 plt.legend()
 plt.grid(True)
 
-# (Lưu file text - giữ nguyên)
-# ...
+with open("sbe_simulation_results3.txt", "w") as f:
+    for i in range(len(time_points)):
+        f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
+
+with open("sbe_f_e_n_results.txt", "w") as f:
+    for i in range(len(time_points)):
+        # f.write(f"{time_points[i]}\t")
+        for n in range(N):
+            f.write(f"{results_f_e_n[i][n]:.6f}\t")
+        f.write("\n")
+
+with open("sbe_p_n_results.txt", "w") as f:
+    for i in range(len(time_points)):
+        # f.write(f"{time_points[i]}\t")
+        for n in range(N):
+            # p_n is complex so write real+imag form to avoid formatting errors
+            val = results_p_n[i][n]
+            f.write(f"{val.real:.6f}+{val.imag:.6f}j\t")
+        f.write("\n")
+
+# Save absorption spectrum results
+with open("sbe_absorption_results.txt", "w") as f:
+    for i in range(len(energy_axis_plot)):
+        f.write(f"{energy_axis_plot[i]:.6f}\t{alpha_omega[i]:.6f}\n")
+
 
 plt.tight_layout()
 plt.savefig("sbe_simulation_results_FIXED_FT.png")

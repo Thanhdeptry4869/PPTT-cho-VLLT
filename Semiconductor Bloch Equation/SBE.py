@@ -50,7 +50,7 @@ print("Đã xong ma trận g.")
 n_vector_1_based = np.arange(1, N + 1)
 epsilon_n_array = n_vector_1_based * DELTA_EPSILON
 # Trọng số cho mật độ trạng thái (DOS)
-dos_weights = np.sqrt(epsilon_n_array)
+dos_weights = np.sqrt(n_vector_1_based)
 
 # --- 4. Các hàm Vector hóa (E_n và Omega_R)  ---
 
@@ -194,8 +194,7 @@ def calculate_ft_energy(time_array, signal_array, energy_array, hbar_val):
 # Define physical energy range around bandgap
 from numpy.fft import fftfreq
 n_freq = len(time_points)
-freqs = fftfreq(n_freq, d=DT)
-energy_array = HBAR * 2 * np.pi * freqs  # meV
+energy_array = np.linspace(-300, 300, 1000) # Trục năng lượng (meV) tuyến tính
 
 # Calculate Fourier transforms
 P_omega = calculate_ft_energy(time_points, np.array(results_P_t_complex), energy_array, HBAR)
