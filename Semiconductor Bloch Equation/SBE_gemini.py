@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # --- 1. Hằng số và Tham số ---
-N = 100                     # Số điểm năng lượng
+N = 1000                     # Số điểm năng lượng
 EPSILON_MAX = 300.0         # meV
 DELTA_EPSILON = EPSILON_MAX / N
 E_R = 4.2                   # meV
@@ -16,6 +16,12 @@ T_2 = 210.0                 # fs (thời gian khử pha)
 T_0 = -3 * DELTA_T_LASER    # Thời gian bắt đầu
 T_MAX = 1500.0              # fs (Đã tăng để P(t) tắt hẳn)
 DT = 2.0                    # fs (bước thời gian)
+
+a0_A = 125.0
+a0_cm = a0_A * 1e-8
+numerator = DELTA_EPSILON * np.sqrt(DELTA_EPSILON)
+denominator = 2 * (np.pi ** 2) * (a0_cm ** 3) * E_R * np.sqrt(E_R)
+C_density = numerator / denominator
 
 # --- 2. Hàm trợ giúp g(n, n1) ---
 def g_func(n_idx, n1_idx, delta_eps):
@@ -114,7 +120,7 @@ for i, t in enumerate(time_points):
     f_e_n = Y_current[0, :].real
     p_n = Y_current[1, :]
     
-    N_t = 2.0 * np.sum(f_e_n * dos_weights)
+    N_t = 2.0 * np.sum(f_e_n * dos_weights * C_density)  # Mật độ electron (cm^-3)
     P_t_complex = np.sum(p_n * dos_weights)
     
     results_N_t.append(N_t)
@@ -147,7 +153,7 @@ def calculate_ft_energy(time_array, signal_array, energy_axis, hbar_val):
 # --- Usage ---
 # *** LỖI TÍNH TOÁN 2 ĐÃ SỬA: Dùng trục tuyến tính, không dùng fftfreq ***
 print("Đang tính toán Phổ Hấp thụ...")
-energy_axis_plot = np.linspace(-50, 100, 500) # Trục năng lượng (meV) tuyến tính
+energy_axis_plot = np.linspace(-50, 100, 1000) # Trục năng lượng (meV) tuyến tính
 
 P_omega = calculate_ft_energy(time_points, np.array(results_P_t_complex), energy_axis_plot, HBAR)
 E_t_array = np.exp(-(time_points**2) / (DELTA_T_LASER**2))
@@ -192,28 +198,28 @@ plt.xlim(-100, 100)
 plt.legend()
 plt.grid(True)
 
-# with open(f"sbe_simulation_results({CHI_0}).txt", "w") as f:
-#     for i in range(len(time_points)):
-#         f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
+with open(f"sbe_simulation_results({CHI_0}).txt", "w") as f:
+    for i in range(len(time_points)):
+        f.write(f"{time_points[i]}\t{results_N_t[i]:.6f}\t{results_P_t[i]:.6f}\n")
 
-# with open(f"sbe_f_e_n_results({CHI_0}).txt", "w") as f:
-#     for i in range(len(time_points)):
-#         # f.write(f"{time_points[i]}\t")
-#         for n in range(N):
-#             f.write(f"{results_f_e_n[i][n]:.6f}\t")
-#         f.write("\n")
+with open(f"sbe_f_e_n_results({CHI_0}).txt", "w") as f:
+    for i in range(len(time_points)):
+        # f.write(f"{time_points[i]}\t")
+        for n in range(N):
+            f.write(f"{results_f_e_n[i][n]:.6f}\t")
+        f.write("\n")
 
-# with open(f"sbe_p_n_results({CHI_0}).txt", "w") as f:
-#     for i in range(len(time_points)):
-#         # f.write(f"{time_points[i]}\t")
-#         for n in range(N):
-#             # p_n is complex so write real+imag form to avoid formatting errors
-#             val = results_p_n[i][n]
-#             f.write(f"{val.real:.6f}+{val.imag:.6f}j\t")
-#         f.write("\n")
+with open(f"sbe_p_n_results({CHI_0}).txt", "w") as f:
+    for i in range(len(time_points)):
+        # f.write(f"{time_points[i]}\t")
+        for n in range(N):
+            # p_n is complex so write real+imag form to avoid formatting errors
+            val = results_p_n[i][n]
+            f.write(f"{val.real:.6f}+{val.imag:.6f}j\t")
+        f.write("\n")
 
 # Save absorption spectrum results
-with open(f"sbe_absorption_results({CHI_0})(500).txt", "w") as f:
+with open(f"sbe_absorption_results({CHI_0}).txt", "w") as f:
     for i in range(len(energy_axis_plot)):
         f.write(f"{energy_axis_plot[i]:.6f}\t{alpha_omega[i]:.6f}\n")
 

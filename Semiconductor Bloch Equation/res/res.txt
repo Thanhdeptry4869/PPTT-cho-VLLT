@@ -1,0 +1,9 @@
+#p 'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_1000_300.0_0.10_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l,\
+#'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_500_300.0_0.10_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l,\
+#'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_200_300.0_0.10_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l,\
+#'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_100_300.0_0.10_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l
+set xrange[-20:100]
+p 'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_1000_300.0_0.01_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l,\
+'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_1000_300.0_0.05_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l,\
+'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_1000_300.0_0.10_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):(2*$2) w l,\
+'G:\university\MrTuyen\PPTT-cho-VLLT\Semiconductor Bloch Equation\res\abs_res_1000_300.0_0.50_25.0_30.0_6.5e-20_Coulomb.txt' u ($1+30):2 w l

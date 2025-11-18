@@ -121,12 +121,12 @@ def F(t, Y, g_mat):
     return dYdt
 
 # --- 6. Bộ giải RK4 ---
-def rk4_step(t, Y, dt, g_mat):
+def rk4_step(t, Y, dt, g_mat, T2_current):
     """Một bước Runge-Kutta bậc 4."""
-    k1 = F(t, Y, g_mat)
-    k2 = F(t + 0.5 * dt, Y + 0.5 * dt * k1, g_mat)
-    k3 = F(t + 0.5 * dt, Y + 0.5 * dt * k2, g_mat)
-    k4 = F(t + dt, Y + dt * k3, g_mat)
+    k1 = F(t, Y, g_mat, T2_current)
+    k2 = F(t + 0.5 * dt, Y + 0.5 * dt * k1, g_mat, T2_current)
+    k3 = F(t + 0.5 * dt, Y + 0.5 * dt * k2, g_mat, T2_current)
+    k4 = F(t + dt, Y + dt * k3, g_mat, T2_current)
     
     Y_next = Y + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
     return Y_next

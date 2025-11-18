@@ -1,0 +1,27 @@
+{
+    "energy": {
+        "N": 1000,
+        "EPSILON_MAX": 300.0,
+        "energy_range": [-50, 100],
+        "N_OMEGA": 5000
+    },
+
+    "material": {
+        "E_R": 4.2,
+        "HBAR": 658.5,
+        "DELTA_0": 30.0,
+        "T_2": 210.0,
+        "GAMMA": 6.5e-20
+    },
+
+    "laser": {
+        "DELTA_T_LASER": 25.0,
+        "CHI_0": 0.05
+    },
+
+    "simulation": {
+        "T_MAX": 1500.0,
+        "DT": 2.0,
+        "Coulomb_enabled": true
+    }
+}
